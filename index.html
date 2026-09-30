@@ -3,11 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My app</title>
+  <title>DoneList</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>My app</h1>
+    <main class="app">
+        <header class="header">
+            <h1 class="title">DoneList</h1>
+            <p class="subtitle">Capture it. Check it off. Move on.</p>
+        </header>
+        <form id="task-form" class="task-form">
+            <input
+            id="task-input"
+            class="task-input"
+            type="text"
+            placeholder="What needs doing?"
+            autocomplete="off"
+            maxlength="200"
+            required>
+        <button type="submit" class="add-btn">Add</button>
+    </form>
+
+    <ul id="task-list" class="task-list" aria-live="polite"></ul>
+    </main>
   <script src="app.js"></script>
 </body>
 </html>
