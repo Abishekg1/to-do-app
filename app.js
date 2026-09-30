@@ -1,15 +1,11 @@
+import { makeTask } from './task.js';
+import { loadTasks, saveTasks } from './storage.js';
+
 let currentFilter = 'all';
 
 
-const saved = localStorage.getItem('tasks');
-const tasks = saved ? JSON.parse(saved) : [];
-
-function makeTask(text) {
-  return {
-    text: text,
-    done: false
-  };
-}
+const tasks = loadTasks();
+saveTasks(tasks);
 
 function buildTaskItem(task, index) {
   const li = document.createElement('li');
@@ -22,7 +18,7 @@ function buildTaskItem(task, index) {
 
   checkbox.addEventListener('change', () => {
     tasks[index].done = checkbox.checked;
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+    saveTasks(tasks);
     render();
   });
 
@@ -38,7 +34,7 @@ function buildTaskItem(task, index) {
 
   deleteBtn.addEventListener('click', () => {
     tasks.splice(index, 1);
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+    saveTasks(tasks);
     render();
   });
 
@@ -77,7 +73,7 @@ function addTask(event) {
   tasks.push(makeTask(text));
   input.value = '';
 
-  localStorage.setItem('tasks', JSON.stringify(tasks));
+  saveTasks(tasks);
   render();
 }
 
