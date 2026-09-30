@@ -1,5 +1,5 @@
-const greeting = "Hello from DoneList!";
-console.log(greeting);
+let currentFilter = 'all';
+
 
 const saved = localStorage.getItem('tasks');
 const tasks = saved ? JSON.parse(saved) : [];
@@ -52,9 +52,12 @@ function buildTaskItem(task, index) {
 function render() {
   const list = document.getElementById('task-list');
   list.textContent = '';
+  let visible = tasks;
+  if (currentFilter === 'active') visible = tasks.filter(t => !t.done);
+  if (currentFilter === 'done')   visible = tasks.filter(t => t.done);
 
-  tasks.forEach((task, index) => {
-    list.appendChild(buildTaskItem(task, index));
+  visible.forEach((task, index) => {
+    list.appendChild(buildTaskItem(task, tasks.indexOf(task)));
   });
 
   const counter = document.getElementById('task-counter');
@@ -80,5 +83,12 @@ function addTask(event) {
 
 const form = document.getElementById('task-form');
 form.addEventListener('submit', addTask);
-
-render();
+document.getElementById('filters').addEventListener('click', (event) => {
+  const filter = event.target.dataset.filter;
+  if (!filter) return;
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(button => {
+    button.classList.toggle('active', button.dataset.filter === currentFilter);
+  });
+  render();
+});

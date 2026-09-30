@@ -90,6 +90,12 @@ body {
   background: #fff;
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
 }
+.filter-btn.active {
+  background: #eef2ff;
+  color: var(--accent);
+  font-weight: 700;
+  border: 1px solid #c7d2fe;
+}
 
 .add-btn {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
@@ -149,6 +155,9 @@ body {
   background: #fee2e2;
   color: #dc2626;
 }
+
+
+
 @media (max-width: 375px) {
   .app {
     padding: 20px;
