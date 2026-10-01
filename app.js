@@ -1,6 +1,11 @@
 import { makeTask } from './task.js';
 import { loadTasks, saveTasks } from './storage.js';
 
+fetch("/")
+  .then(res => res.json())
+  .then(data => console.log(data));
+
+
 let currentFilter = 'all';
 
 
