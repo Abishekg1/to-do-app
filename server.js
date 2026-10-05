@@ -1,35 +1,19 @@
 require("dotenv").config();
+
 const express = require("express");
-const fs = require("fs/promises");
-const path = require("path");
+const mongoose = require("mongoose");
+const Task = require("./models/Task");
 
 const app = express();
 
-app.use(express.json());
-
 console.log("Starting", process.env.APP_NAME);
 
-const DATA_FILE = path.join(__dirname, "data", "tasks.json");
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
 
 const wrap = (fn) => (req, res, next) =>
   fn(req, res, next).catch(next);
-
-async function loadTasks() {
-  try {
-    const text = await fs.readFile(DATA_FILE, "utf8");
-    return JSON.parse(text);
-  } catch (err) {
-    return [];
-  }
-}
-
-async function saveTasks(data) {
-  await fs.writeFile(
-    DATA_FILE,
-    JSON.stringify(data, null, 2),
-    "utf8"
-  );
-}
 
 function validateTaskBody(body) {
   if (!body || typeof body.text !== "string") {
@@ -49,37 +33,29 @@ function validateTaskBody(body) {
   return trimmed;
 }
 
-
 app.get("/api/hello", (req, res) => {
   res.json({ message: "Hello from DoneList" });
 });
 
 app.get("/api/tasks", wrap(async (req, res) => {
-  const tasks = await loadTasks();
+  const tasks = await Task.find();
   res.json(tasks);
 }));
 
-app.post("/api/tasks", wrap(async (req, res, next) => {
+app.post("/api/tasks", wrap(async (req, res) => {
   const trimmed = validateTaskBody(req.body);
 
-  const tasks = await loadTasks();
+  const task = new Task({
+    text: trimmed
+  });
 
-  const newTask = {
-    id: String(Date.now()),
-    text: trimmed,
-    done: false
-  };
+  await task.save();
 
-  tasks.push(newTask);
-  await saveTasks(tasks);
-
-  res.status(201).json(newTask);
+  res.status(201).json(task);
 }));
 
 app.put("/api/tasks/:id", wrap(async (req, res, next) => {
-  const tasks = await loadTasks();
-
-  const task = tasks.find((item) => item.id === req.params.id);
+  const task = await Task.findById(req.params.id);
 
   if (!task) {
     const err = new Error("Task not found");
@@ -98,30 +74,24 @@ app.put("/api/tasks/:id", wrap(async (req, res, next) => {
 
     task.text = trimmed;
   }
-  
+
   if (req.body.done !== undefined) {
-  if (typeof req.body.done !== "boolean") {
-    const err = new Error("Done must be a boolean");
-    err.status = 400;
-    return next(err);
+    if (typeof req.body.done !== "boolean") {
+      const err = new Error("Done must be a boolean");
+      err.status = 400;
+      return next(err);
+    }
+
+    task.done = req.body.done;
   }
 
-  task.done = req.body.done;
-}
-
-  await saveTasks(tasks);
+  await task.save();
 
   res.json(task);
 }));
 
 app.delete("/api/tasks/:id", wrap(async (req, res) => {
-  const tasks = await loadTasks();
-
-  const filtered = tasks.filter(
-    (item) => item.id !== req.params.id
-  );
-
-  await saveTasks(filtered);
+  await Task.findByIdAndDelete(req.params.id);
 
   res.json({ ok: true });
 }));
@@ -158,9 +128,15 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log("MongoDB connected");
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB connection failed:", err);
+  });
