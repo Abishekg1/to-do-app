@@ -1,48 +1,54 @@
-import { makeTask } from './task.js';
-import { loadTasks, saveTasks } from './storage.js';
 
-fetch("/")
-  .then((res) => res.text())
-  .then((data) => console.log(data));
+let currentFilter = "all";
+let tasks = [];
 
+async function loadTasks() {
+  const response = await fetch("/api/tasks");
+  tasks = await response.json();
+  render();
+}
 
+loadTasks();
 
+function buildTaskItem(task) {
+  const li = document.createElement("li");
+  li.className = "task-item";
+  li.dataset.id = task.id;
 
-let currentFilter = 'all';
-
-
-const tasks = loadTasks();
-saveTasks(tasks);
-
-function buildTaskItem(task, index) {
-  const li = document.createElement('li');
-  li.className = 'task-item';
-  li.dataset.id = index;
-
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
   checkbox.checked = task.done;
 
-  checkbox.addEventListener('change', () => {
-    tasks[index].done = checkbox.checked;
-    saveTasks(tasks);
-    render();
+  checkbox.addEventListener("change", async () => {
+    await fetch(`/api/tasks/${task.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        done: checkbox.checked
+      })
+    });
+
+    await loadTasks();
   });
 
-  const span = document.createElement('span');
+  const span = document.createElement("span");
   span.textContent = task.text;
-  span.className = task.done ? 'task-text done' : 'task-text';
+  span.className = task.done ? "task-text done" : "task-text";
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.type = 'button';
-  deleteBtn.className = 'delete-btn';
-  deleteBtn.textContent = '×';
-  deleteBtn.setAttribute('aria-label', 'Delete task');
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "delete-btn";
+  deleteBtn.textContent = "×";
+  deleteBtn.setAttribute("aria-label", "Delete task");
 
-  deleteBtn.addEventListener('click', () => {
-    tasks.splice(index, 1);
-    saveTasks(tasks);
-    render();
+  deleteBtn.addEventListener("click", async () => {
+    await fetch(`/api/tasks/${task.id}`, {
+      method: "DELETE"
+    });
+
+    await loadTasks();
   });
 
   li.appendChild(checkbox);
@@ -53,45 +59,71 @@ function buildTaskItem(task, index) {
 }
 
 function render() {
-  const list = document.getElementById('task-list');
-  list.textContent = '';
-  let visible = tasks;
-  if (currentFilter === 'active') visible = tasks.filter(t => !t.done);
-  if (currentFilter === 'done')   visible = tasks.filter(t => t.done);
+  const list = document.getElementById("task-list");
+  list.textContent = "";
 
-  visible.forEach((task, index) => {
-    list.appendChild(buildTaskItem(task, tasks.indexOf(task)));
+  let visible = tasks;
+
+  if (currentFilter === "active") {
+    visible = tasks.filter((task) => !task.done);
+  }
+
+  if (currentFilter === "done") {
+    visible = tasks.filter((task) => task.done);
+  }
+
+  visible.forEach((task) => {
+    list.appendChild(buildTaskItem(task));
   });
 
-  const counter = document.getElementById('task-counter');
-  const remaining = tasks.filter(t => !t.done).length;
+  const counter = document.getElementById("task-counter");
+  const remaining = tasks.filter((task) => !task.done).length;
+
   counter.textContent =
-    remaining === 1 ? '1 task left' : `${remaining} tasks left`;
+    remaining === 1 ? "1 task left" : `${remaining} tasks left`;
 }
 
-function addTask(event) {
+async function addTask(event) {
   event.preventDefault();
 
-  const input = document.getElementById('task-input');
+  const input = document.getElementById("task-input");
   const text = input.value.trim();
 
-  if (text === '') return;
+  if (text === "") {
+    return;
+  }
 
-  tasks.push(makeTask(text));
-  input.value = '';
+  input.value = "";
 
-  saveTasks(tasks);
-  render();
+  await fetch("/api/tasks", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ text })
+  });
+
+  await loadTasks();
 }
 
-const form = document.getElementById('task-form');
-form.addEventListener('submit', addTask);
-document.getElementById('filters').addEventListener('click', (event) => {
+const form = document.getElementById("task-form");
+form.addEventListener("submit", addTask);
+
+document.getElementById("filters").addEventListener("click", (event) => {
   const filter = event.target.dataset.filter;
-  if (!filter) return;
+
+  if (!filter) {
+    return;
+  }
+
   currentFilter = filter;
-  document.querySelectorAll('.filter-btn').forEach(button => {
-    button.classList.toggle('active', button.dataset.filter === currentFilter);
+
+  document.querySelectorAll(".filter-btn").forEach((button) => {
+    button.classList.toggle(
+      "active",
+      button.dataset.filter === currentFilter
+    );
   });
+
   render();
 });
