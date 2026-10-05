@@ -27,3 +27,8 @@ A response is what the server sends back. It includes a status code describing t
 - POST = create a task
 - PUT/PATCH = update a task
 - DELETE = delete a task
+
+Tasks are stored on the server in data/tasks.json.
+The server validates incoming task data and returns a 400 JSON error when the data is invalid,
+so only valid tasks are saved to tasks.json.
+

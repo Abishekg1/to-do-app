@@ -1,4 +1,3 @@
-
 let currentFilter = "all";
 let tasks = [];
 

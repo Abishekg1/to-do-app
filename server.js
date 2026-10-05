@@ -31,6 +31,25 @@ async function saveTasks(data) {
   );
 }
 
+function validateTaskBody(body) {
+  if (!body || typeof body.text !== "string") {
+    const err = new Error("Text is required");
+    err.status = 400;
+    throw err;
+  }
+
+  const trimmed = body.text.trim();
+
+  if (trimmed === "") {
+    const err = new Error("Text is required");
+    err.status = 400;
+    throw err;
+  }
+
+  return trimmed;
+}
+
+
 app.get("/api/hello", (req, res) => {
   res.json({ message: "Hello from DoneList" });
 });
@@ -41,14 +60,9 @@ app.get("/api/tasks", wrap(async (req, res) => {
 }));
 
 app.post("/api/tasks", wrap(async (req, res, next) => {
-  const tasks = await loadTasks();
-  const trimmed = String(req.body.text || "").trim();
+  const trimmed = validateTaskBody(req.body);
 
-  if (trimmed === "") {
-    const err = new Error("Text is required");
-    err.status = 400;
-    return next(err);
-  }
+  const tasks = await loadTasks();
 
   const newTask = {
     id: String(Date.now()),
@@ -84,10 +98,16 @@ app.put("/api/tasks/:id", wrap(async (req, res, next) => {
 
     task.text = trimmed;
   }
-
+  
   if (req.body.done !== undefined) {
-    task.done = req.body.done;
+  if (typeof req.body.done !== "boolean") {
+    const err = new Error("Done must be a boolean");
+    err.status = 400;
+    return next(err);
   }
+
+  task.done = req.body.done;
+}
 
   await saveTasks(tasks);
 
