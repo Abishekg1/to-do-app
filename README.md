@@ -28,7 +28,32 @@ A response is what the server sends back. It includes a status code describing t
 - PUT/PATCH = update a task
 - DELETE = delete a task
 
-Tasks are stored on the server in data/tasks.json.
-The server validates incoming task data and returns a 400 JSON error when the data is invalid,
-so only valid tasks are saved to tasks.json.
+## Environment
 
+The server reads the `PORT` environment variable for the port it should use.
+
+Start the server with:
+
+```bash
+npm start
+
+Then add:
+
+```md
+## Running on a host
+
+A host needs three things to run the server:
+
+- Start command: `npm start`
+- Port: set the `PORT` environment variable
+- Local secrets: use `.env` for local secret values and do not commit them
+## Feedback and what I would change next
+
+Person 1 was unsure what the All, Active, and Done filters meant.'
+I would make the filter labels more obvious.
+
+Person 2 did not immediately notice how to delete a task.
+I would make the delete control more visible and easier to understand.
+
+npm start
+Server running on port 3000
