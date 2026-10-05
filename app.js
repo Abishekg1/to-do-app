@@ -1,5 +1,3 @@
-
-
 import { makeTask } from './task.js';
 import { loadTasks, saveTasks } from './storage.js';
 
