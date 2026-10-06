@@ -73,110 +73,140 @@ async function requireAuth(req, res, next) {
   }
 }
 
+// Hello
 app.get("/api/hello", (req, res) => {
-  res.json({ message: "Hello from DoneList" });
+  res.json({
+    message: "Hello from DoneList"
+  });
 });
 
-// Get tasks - authenticated users only
-app.get("/api/tasks", requireAuth, wrap(async (req, res) => {
-  const tasks = await Task.find();
+// Get current user's tasks
+app.get(
+  "/api/tasks",
+  requireAuth,
+  wrap(async (req, res) => {
+    const tasks = await Task.find({
+      owner: req.user._id
+    });
 
-  res.json(tasks);
-}));
+    res.json(tasks);
+  })
+);
 
-// Create task - authenticated users only
-app.post("/api/tasks", requireAuth, wrap(async (req, res) => {
-  const trimmed = validateTaskBody(req.body);
+// Create task
+app.post(
+  "/api/tasks",
+  requireAuth,
+  wrap(async (req, res) => {
+    const trimmed = validateTaskBody(req.body);
 
-  const task = new Task({
-    text: trimmed
-  });
+    const task = new Task({
+      text: trimmed,
+      owner: req.user._id
+    });
 
-  await task.save();
+    await task.save();
 
-  res.status(201).json(task);
-}));
+    res.status(201).json(task);
+  })
+);
 
 // Signup
-app.post("/api/signup", wrap(async (req, res) => {
-  const { email, password } = req.body;
+app.post(
+  "/api/signup",
+  wrap(async (req, res) => {
+    const { email, password } = req.body;
 
-  const user = new User({
-    email,
-    password
-  });
+    const user = new User({
+      email,
+      password
+    });
 
-  try {
-    await user.save();
-  } catch (err) {
-    if (err.code === 11000) {
-      err.status = 409;
-      err.message = "Email already exists";
+    try {
+      await user.save();
+    } catch (err) {
+      if (err.code === 11000) {
+        err.status = 409;
+        err.message = "Email already exists";
+      }
+
+      throw err;
     }
 
-    throw err;
-  }
+    const token = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRET
+    );
 
-  const token = jwt.sign(
-    { id: user.id },
-    process.env.JWT_SECRET
-  );
+    res.cookie("session", token, {
+      httpOnly: true
+    });
 
-  res.cookie("session", token, {
-    httpOnly: true
-  });
-
-  res.status(201).json({
-    id: user.id,
-    email: user.email
-  });
-}));
+    res.status(201).json({
+      id: user.id,
+      email: user.email
+    });
+  })
+);
 
 // Login
-app.post("/api/login", wrap(async (req, res) => {
-  const { email, password } = req.body;
+app.post(
+  "/api/login",
+  wrap(async (req, res) => {
+    const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+    const user = await User.findOne({
+      email
+    });
 
-  if (!user) {
-    const err = new Error("Invalid email or password");
-    err.status = 401;
-    throw err;
-  }
+    if (!user) {
+      const err = new Error(
+        "Invalid email or password"
+      );
+      err.status = 401;
+      throw err;
+    }
 
-  const ok = await bcrypt.compare(
-    password,
-    user.password
-  );
+    const ok = await bcrypt.compare(
+      password,
+      user.password
+    );
 
-  if (!ok) {
-    const err = new Error("Invalid email or password");
-    err.status = 401;
-    throw err;
-  }
+    if (!ok) {
+      const err = new Error(
+        "Invalid email or password"
+      );
+      err.status = 401;
+      throw err;
+    }
 
-  const token = jwt.sign(
-    { id: user.id },
-    process.env.JWT_SECRET
-  );
+    const token = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRET
+    );
 
-  res.cookie("session", token, {
-    httpOnly: true
-  });
+    res.cookie("session", token, {
+      httpOnly: true
+    });
 
-  res.json({
-    id: user.id,
-    email: user.email
-  });
-}));
+    res.json({
+      id: user.id,
+      email: user.email
+    });
+  })
+);
 
 // Current logged-in user
-app.get("/api/me", requireAuth, (req, res) => {
-  res.json({
-    id: req.user.id,
-    email: req.user.email
-  });
-});
+app.get(
+  "/api/me",
+  requireAuth,
+  (req, res) => {
+    res.json({
+      id: req.user.id,
+      email: req.user.email
+    });
+  }
+);
 
 // Logout
 app.post("/api/logout", (req, res) => {
@@ -184,12 +214,15 @@ app.post("/api/logout", (req, res) => {
   res.status(204).end();
 });
 
-// Update task - authenticated users only
+// Update task
 app.put(
   "/api/tasks/:id",
   requireAuth,
   wrap(async (req, res, next) => {
-    const task = await Task.findById(req.params.id);
+    const task = await Task.findOne({
+      _id: req.params.id,
+      owner: req.user._id
+    });
 
     if (!task) {
       const err = new Error("Task not found");
@@ -198,10 +231,14 @@ app.put(
     }
 
     if (req.body.text !== undefined) {
-      const trimmed = String(req.body.text).trim();
+      const trimmed = String(
+        req.body.text
+      ).trim();
 
       if (trimmed === "") {
-        const err = new Error("Text is required");
+        const err = new Error(
+          "Text is required"
+        );
         err.status = 400;
         return next(err);
       }
@@ -210,8 +247,12 @@ app.put(
     }
 
     if (req.body.done !== undefined) {
-      if (typeof req.body.done !== "boolean") {
-        const err = new Error("Done must be a boolean");
+      if (
+        typeof req.body.done !== "boolean"
+      ) {
+        const err = new Error(
+          "Done must be a boolean"
+        );
         err.status = 400;
         return next(err);
       }
@@ -225,12 +266,21 @@ app.put(
   })
 );
 
-// Delete task - authenticated users only
+// Delete task
 app.delete(
   "/api/tasks/:id",
   requireAuth,
-  wrap(async (req, res) => {
-    await Task.findByIdAndDelete(req.params.id);
+  wrap(async (req, res, next) => {
+    const deletedTask = await Task.findOneAndDelete({
+      _id: req.params.id,
+      owner: req.user._id
+    });
+
+    if (!deletedTask) {
+      const err = new Error("Task not found");
+      err.status = 404;
+      return next(err);
+    }
 
     res.json({
       ok: true
@@ -294,7 +344,9 @@ mongoose
     console.log("MongoDB connected");
 
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(
+        `Server running on port ${PORT}`
+      );
     });
   })
   .catch((err) => {
