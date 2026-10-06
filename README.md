@@ -55,5 +55,17 @@ I would make the filter labels more obvious.
 Person 2 did not immediately notice how to delete a task.
 I would make the delete control more visible and easier to understand.
 
+## Running on a host
+
+Start the server with:
+
+```bash
 npm start
-Server running on port 3000
+
+## 8. Commit the changes
+
+After everything works:
+
+```bash
+git add . && git commit -m "Run like production"
+

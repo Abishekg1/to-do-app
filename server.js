@@ -1,5 +1,7 @@
 require("dotenv").config();
 
+
+
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const User = require("./models/User");
@@ -8,6 +10,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Task = require("./models/Task");
 const bcrypt = require("bcrypt");
+const morgan = require("morgan");
 
 const app = express();
 
@@ -17,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cookieParser());
-
+app.use(morgan("tiny"));
 const wrap = (fn) => (req, res, next) =>
   fn(req, res, next).catch(next);
 
@@ -305,20 +308,6 @@ app.get("/styles.css", (req, res) => {
 // Serve app.js
 app.get("/app.js", (req, res) => {
   res.sendFile("app.js", {
-    root: "."
-  });
-});
-
-// Serve task.js
-app.get("/task.js", (req, res) => {
-  res.sendFile("task.js", {
-    root: "."
-  });
-});
-
-// Serve storage.js
-app.get("/storage.js", (req, res) => {
-  res.sendFile("storage.js", {
     root: "."
   });
 });
