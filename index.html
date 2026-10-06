@@ -6,32 +6,130 @@
   <title>DoneList</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
-    <main class="app">
-        <header class="header">
-            <h1 class="title">DoneList</h1>
-            <p class="subtitle">Capture it. Check it off. Move on.</p>
-        </header>
-        <form id="task-form" class="task-form">
-            <input
-            id="task-input"
-            class="task-input"
-            type="text"
-            placeholder="What needs doing?"
-            autocomplete="off"
-            maxlength="200"
-            required>
-        <button type="submit" class="add-btn">Add</button>
-    </form>
-    <div id="filters">
-        <button type="button" class="filter-btn" data-filter="all">All</button>
-        <button type="button" class="filter-btn" data-filter="active">Active</button>
-        <button type="button" class="filter-btn" data-filter="done">Done</button>
-    </div>
 
-    <ul id="task-list" class="task-list" aria-live="polite"></ul>
-    <p id="task-counter" class="task-counter"></p>
-    </main>
+<body>
+  <main class="app">
+
+    <header class="header">
+      <h1 class="title">DoneList</h1>
+      <p class="subtitle">Capture it. Check it off. Move on.</p>
+    </header>
+
+    <!-- Logged-out UI -->
+    <section id="auth-ui">
+
+      <h2>Log in</h2>
+
+      <form id="login-form" class="auth-form">
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          autocomplete="email"
+          required
+        />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          autocomplete="current-password"
+          required
+        />
+
+        <button type="submit" class="add-btn">Log in</button>
+      </form>
+
+      <h2>Sign up</h2>
+
+      <form id="signup-form" class="auth-form">
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          autocomplete="email"
+          required
+        />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          autocomplete="new-password"
+          required
+        />
+
+        <button type="submit" class="add-btn">Sign up</button>
+      </form>
+
+      <p id="auth-message"></p>
+
+    </section>
+
+
+    <!-- Logged-in UI -->
+    <section id="task-ui" hidden>
+
+      <button
+        id="logout-button"
+        type="button"
+        class="add-btn"
+      >
+        Log out
+      </button>
+
+      <form id="task-form" class="task-form">
+        <input
+          id="task-input"
+          class="task-input"
+          type="text"
+          placeholder="What needs doing?"
+          autocomplete="off"
+          maxlength="200"
+          required
+        />
+
+        <button type="submit" class="add-btn">Add</button>
+      </form>
+
+      <div id="filters">
+        <button
+          type="button"
+          class="filter-btn"
+          data-filter="all"
+        >
+          All
+        </button>
+
+        <button
+          type="button"
+          class="filter-btn"
+          data-filter="active"
+        >
+          Active
+        </button>
+
+        <button
+          type="button"
+          class="filter-btn"
+          data-filter="done"
+        >
+          Done
+        </button>
+      </div>
+
+      <ul
+        id="task-list"
+        class="task-list"
+        aria-live="polite"
+      ></ul>
+
+      <p id="task-counter" class="task-counter"></p>
+
+    </section>
+
+  </main>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
