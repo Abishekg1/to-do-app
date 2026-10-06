@@ -1,71 +1,81 @@
 DoneList
 
-DoneList is a simple task-list app where you can add tasks,
+A full-stack to-do app. Sign up, log in, add tasks, check them off, and filter them.
+Tasks are private to each user and persist through server restarts.
 
-mark them as complete, delete them, and filter them by All, Active, or Done. Tasks are saved in the browser using localStorage.
+Live demo
 
-How to Run
+[Add your live app URL here]
 
-Open index.html in a browser, or use the project's preview to run the app.
+Stack
 
-What I Learned
+Front end: Plain HTML, CSS, and JavaScript
 
-I learned how to use JavaScript to manage an array of task objects, 
-update the DOM, handle button and checkbox events,
-filter tasks, and save data with localStorage.
+Back end: Node.js and Express
 
+Database: MongoDB with Mongoose
 
-## HTTP requests and responses
+Authentication: bcrypt for password hashing, JWT in an httpOnly cookie, and cookie-parser
 
-A request is what the client sends to a server. It includes a method such as GET or POST, headers with extra information, and sometimes a body containing data.
+Logging: Morgan
 
-A response is what the server sends back. It includes a status code describing the result, headers with extra information, and sometimes a body containing data such as JSON.
+Configuration: dotenv
 
-## REST verbs (GET, POST, PUT/PATCH, DELETE)
+Running on a host
 
-- GET = read tasks
-- POST = create a task
-- PUT/PATCH = update a task
-- DELETE = delete a task
+Start the application with:
 
-## Environment
-
-The server reads the `PORT` environment variable for the port it should use.
-
-Start the server with:
-
-```bash
 npm start
 
-Then add:
 
-```md
-## Running on a host
+The server uses these environment variables:
 
-A host needs three things to run the server:
+PORT — the port the server listens on
 
-- Start command: `npm start`
-- Port: set the `PORT` environment variable
-- Local secrets: use `.env` for local secret values and do not commit them
-## Feedback and what I would change next
+MONGODB_URI — the MongoDB connection string
 
-Person 1 was unsure what the All, Active, and Done filters meant.'
-I would make the filter labels more obvious.
+JWT_SECRET — the secret used to sign authentication tokens
 
-Person 2 did not immediately notice how to delete a task.
-I would make the delete control more visible and easier to understand.
+The app is available at the server's own URL.
 
-## Running on a host
+How DoneList stores data
 
-Start the server with:
+DoneList started with localStorage, which saved tasks directly in the user's browser. That was simple, but the data disappeared when the user cleared browser storage and could not be shared between devices.
 
-```bash
-npm start
+The next step was a JSON file on the server. This created a single source of truth for a Node process and moved the data outside the browser, but the data could be lost during a redeploy and the file becomes slower and harder to manage as the application grows.
 
-## 8. Commit the changes
+DoneList now uses MongoDB for real persistence. Tasks have a defined structure, can be queried by owner, and remain available after the server restarts.
 
-After everything works:
+Each step was necessary because without it, users would lose their tasks when browser storage was cleared, when the server was redeployed, or when the application needed to support persistent per-user data.
 
-```bash
-git add . && git commit -m "Run like production"
+Technical choices and trade-offs
 
+Express for the HTTP layer: Express is small, well-known, and straightforward to host. The trade-off is that more application structure and security decisions have to be handled by the developer.
+
+Mongoose on top of MongoDB: Mongoose provides schemas and a clean find/save API instead of requiring raw database queries. The trade-off is an additional abstraction that developers need to understand alongside MongoDB itself.
+
+JWT in an httpOnly cookie for sessions: The application does not need a server-side session table because the cookie carries the user's signed ID. The trade-off is that logging out before a token expires requires an additional strategy such as token revocation or a deny list if the application grows.
+
+User-owned tasks: Every Task carries an owner field set to req.user._id, so database reads, updates, and deletes can be restricted to the logged-in user. The trade-off is that every task operation must enforce ownership correctly, adding some authorization logic to the API.
+
+DoneList -- portfolio note
+
+DoneList is a full-stack task manager that lets people capture tasks, check them off, see what remains, and keep their task list private. It uses Node.js and Express on the server, Mongoose with MongoDB for persistence, JWT in an httpOnly cookie for authentication, and plain HTML, CSS, and JavaScript on the front end. The application includes signup, login, and per-user task ownership so each user only sees and manages their own tasks. The next feature I would add is due dates and reminders so users can turn their task list into a more useful planning tool.
+
+API overview
+
+POST /api/signup — create an account
+
+POST /api/login — log in
+
+POST /api/logout — clear the session
+
+GET /api/me — get the current user
+
+GET /api/tasks — list the logged-in user's tasks
+
+POST /api/tasks — create a task
+
+PUT /api/tasks/:id — update one of the user's tasks
+
+DELETE /api/tasks/:id — delete one of the user's tasks
